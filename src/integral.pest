@@ -1,0 +1,16 @@
+
+comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ }
+
+var = _{ "x" ~ "_"? ~ ASCII_DIGIT+ }
+
+bound = @{ var | "0" | "1" }
+
+int_header = { "Int_" ~ bound ~ "^" ~ bound }
+
+int_footer = @{ "d" ~ var }
+
+integral = { int_header* ~ "1" ~ int_footer* }
+
+input = { comment* ~ integral ~ EOI }
+
+WHITESPACE = _{ " " | "\t" }
