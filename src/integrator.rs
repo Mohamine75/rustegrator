@@ -1,23 +1,28 @@
-use std::collections::HashSet;
-use std::{collections::HashMap, ops::Mul};
-use num::{BigRational, Signed, BigInt};
-
 use crate::integral::Bound;
 use crate::integral::IntegralSpec;
+use num::{BigInt, BigRational, Signed};
+use std::collections::HashSet;
+use std::env;
+use std::fmt;
+use std::fmt::Binary;
+use std::fmt::Debug;
+use std::io::{self, Write};
+use std::time::Instant;
+use std::{collections::HashMap, ops::Mul};
 
 // For now, we will use usize for degrees but maybe
 // this should be generic using the num crate
 #[derive(Debug)]
 pub struct Poly {
-    nbvars : usize,
-    monos : HashMap<Vec<i64>, BigRational>
+    nbvars: usize,
+    monos: HashMap<Vec<i64>, BigRational>,
 }
 
-fn mk_one_mono(nbvars : usize) -> Vec<i64> {
+fn mk_one_mono(nbvars: usize) -> Vec<i64> {
     vec![0; nbvars]
 }
 
-fn mono_pp(spec : &IntegralSpec, mono : &Vec<i64>) -> String {
+fn mono_pp(spec: &IntegralSpec, mono: &Vec<i64>) -> String {
     let mut res = String::new();
     let mut first = true;
     for (var_ref, &d) in mono.iter().enumerate() {
@@ -35,14 +40,13 @@ fn mono_pp(spec : &IntegralSpec, mono : &Vec<i64>) -> String {
         }
     }
     if res.len() == 0 {
-        return "1".to_string()
+        return "1".to_string();
     } else {
         return res;
     }
-
 }
 
-fn antideriv_mono(mono : &Vec<i64>, var_num : usize) -> Vec<i64> {
+fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     let mut res = Vec::new();
     for (i, &d) in mono.iter().enumerate() {
         if i == var_num {
@@ -54,27 +58,33 @@ fn antideriv_mono(mono : &Vec<i64>, var_num : usize) -> Vec<i64> {
     res
 }
 
-fn antideriv_coef(coef : &BigRational, mono : &Vec<i64>, var_num : usize) -> BigRational {
-    return coef.mul(BigRational::new(BigInt::from(1), BigInt::from(1) + mono[var_num]));
+fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRational {
+    return coef.mul(BigRational::new(
+        BigInt::from(1),
+        BigInt::from(1) + mono[var_num],
+    ));
 }
 
-fn mono_subst_var(mono : &Vec<i64>, subst_var : usize, by_var : usize) -> Vec<i64> {
-     let mut nmono = mono.clone();
-     nmono[by_var] += mono[subst_var];
-     nmono[subst_var] = 0;
-     nmono
+fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> {
+    let mut nmono = mono.clone();
+    nmono[by_var] += mono[subst_var];
+    nmono[subst_var] = 0;
+    nmono
 }
 
-fn mono_subst_const(mono : &Vec<i64>, subst_var : usize) -> Vec<i64> {
+fn mono_subst_const(mono: &Vec<i64>, subst_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
     nmono[subst_var] = 0;
     nmono
 }
 
 impl Poly {
-    pub fn new(nbvars : usize) -> Poly {
+    pub fn new(nbvars: usize) -> Poly {
         let mut monos = HashMap::new();
-        monos.insert(mk_one_mono(nbvars), BigRational::from_integer(BigInt::from(1)));
+        monos.insert(
+            mk_one_mono(nbvars),
+            BigRational::from_integer(BigInt::from(1)),
+        );
         Poly { nbvars, monos }
     }
 
@@ -87,25 +97,31 @@ impl Poly {
         for (_, coef) in self.monos.iter() {
             coefs.insert(coef);
         }
-        coefs.len()    
+        coefs.len()
     }
 
     pub fn is_constant(self) -> bool {
-        if self.monos.len() != 1 { return false }
+        if self.monos.len() != 1 {
+            return false;
+        }
         for mono in self.monos {
             for vdeg in mono.0 {
-                if vdeg > 0 { return false }
+                if vdeg > 0 {
+                    return false;
+                }
             }
         }
         return true;
     }
 
     pub fn as_constant(self) -> Option<BigRational> {
-        if self.monos.len() != 1 { return None }
+        if self.monos.len() != 1 {
+            return None;
+        }
         for mono in self.monos {
             for vdeg in mono.0 {
-                if vdeg > 0 { 
-                    return None
+                if vdeg > 0 {
+                    return None;
                 } else {
                     return Some(mono.1);
                 }
@@ -114,45 +130,163 @@ impl Poly {
         return None;
     }
 
-    pub fn integrate(self, spec : &IntegralSpec, var : usize, from : &Bound, to : &Bound) -> Poly {
-        let mut nmonos : HashMap<Vec<i64>, BigRational> = HashMap::new();
-        //println!("[integrate] var={var}, from={:?}, to={:?}", from, to);
-
+    pub fn integrate(self, spec: &IntegralSpec, var: usize, from: &Bound, to: &Bound) -> Poly {
+        let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
         for (mono, coef) in self.monos.iter() {
             let amono = antideriv_mono(mono, var);
             let acoef = antideriv_coef(coef, mono, var);
-            let lmono : Option<Vec<i64>> = match &to {
+            let lmono: Option<Vec<i64>> = match &to {
                 Bound::Zero => None,
                 Bound::One => Some(mono_subst_const(&amono, var)),
-                Bound::Var(by_var) => Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone()))) 
+                Bound::Var(by_var) => {
+                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                }
             };
             if lmono.is_some() {
                 let llmono = lmono.unwrap();
-                let entry = nmonos.entry(llmono).or_insert(BigRational::from_integer(BigInt::from(0)));
+                let entry = nmonos
+                    .entry(llmono)
+                    .or_insert(BigRational::from_integer(BigInt::from(0)));
                 *entry += &acoef;
+                print!("")
             }
 
-            let rmono : Option<Vec<i64>> = match &from {
+            let rmono: Option<Vec<i64>> = match &from {
                 Bound::Zero => None,
                 Bound::One => Some(mono_subst_const(&amono, var)),
-                Bound::Var(by_var) => Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                Bound::Var(by_var) => {
+                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                }
             };
 
             if rmono.is_some() {
                 let rrmono = rmono.unwrap();
-                let entry = nmonos.entry(rrmono).or_insert(BigRational::from_integer(BigInt::from(0)));
+                let entry = nmonos
+                    .entry(rrmono)
+                    .or_insert(BigRational::from_integer(BigInt::from(0)));
                 *entry += -acoef;
             }
-
+            //print!("{}", self.nbvars);
         }
+        let res = Poly {
+            nbvars: self.nbvars,
+            monos: nmonos,
+        };
+        //print!("{}", res);
+        print!("\n");
 
-        Poly { nbvars: self.nbvars, monos: nmonos }
+        return res;
+    }
+
+    /**
+     * Debugger
+     **/
+    pub fn integrateDebugger(
+        self,
+        spec: &IntegralSpec,
+        var: usize,
+        from: &Bound,
+        to: &Bound,
+    ) -> Poly {
+        let mut temps_perdu = Instant::now() - Instant::now();
+        let now = Instant::now();
+        let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
+        for (mono, coef) in self.monos.iter() {
+            println!("{}", mono_pp(spec, mono));
+            println!("{}", "appuyez sur une touche pour continuer");
+            let mut input = String::new();
+            let tmp = Instant::now();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Échec de la lecture de la ligne");
+            let trimmed_input = input.trim();
+            match trimmed_input {
+                _ => println!("On Continue"),
+            }
+            temps_perdu += tmp.elapsed();
+            print!("\n");
+            let amono = antideriv_mono(mono, var);
+            let acoef = antideriv_coef(coef, mono, var);
+            let lmono: Option<Vec<i64>> = match &to {
+                Bound::Zero => None,
+                Bound::One => Some(mono_subst_const(&amono, var)),
+                Bound::Var(by_var) => {
+                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                }
+            };
+            if lmono.is_some() {
+                let llmono = lmono.unwrap();
+                let entry = nmonos
+                    .entry(llmono)
+                    .or_insert(BigRational::from_integer(BigInt::from(0)));
+                *entry += &acoef;
+                print!("")
+            }
+
+            let rmono: Option<Vec<i64>> = match &from {
+                Bound::Zero => None,
+                Bound::One => Some(mono_subst_const(&amono, var)),
+                Bound::Var(by_var) => {
+                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                }
+            };
+
+            if rmono.is_some() {
+                let rrmono = rmono.unwrap();
+                let entry = nmonos
+                    .entry(rrmono)
+                    .or_insert(BigRational::from_integer(BigInt::from(0)));
+                *entry += -acoef;
+            }
+            //print!("{}", self.nbvars);
+        }
+        let res = Poly {
+            nbvars: self.nbvars,
+            monos: nmonos,
+        };
+        //print!("{}", res);
+        print!("\n");
+        let end = now.elapsed() - temps_perdu;
+        println!("Temps écoulé: {:.10?}", end);
+        return res;
     }
 }
 
-pub fn poly_pp(spec : &IntegralSpec, poly : &Poly) -> String {
+pub fn printMono(mono: &Vec<i64>, coef: &BigRational, spec: &IntegralSpec) -> () {
     let mut res = String::new();
-    let mut keys : Vec<&Vec<i64>> = poly.monos.keys().collect();
+    let mut first = true;
+    for (var_ref, &d) in mono.iter().enumerate() {
+        if d > 0 {
+            if first {
+                first = false;
+            } else {
+                res.push(' ');
+            }
+            res.push_str(&spec.var_name(var_ref));
+            if d > 1 {
+                res.push('^');
+                res.push_str(&d.to_string());
+            }
+        }
+    }
+    if res.len() == 0 {
+        return ();
+    } else {
+        println!("{} {}", coef, res);
+    }
+}
+impl fmt::Display for Poly {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let res = poly_pp(&IntegralSpec::new(), self); // Utilisez la fonction de formatage définie précédemment
+        write!(f, "{}", res) // Écrivez le résultat dans le formatter
+    }
+}
+
+/* Fin debugger */
+
+pub fn poly_pp(spec: &IntegralSpec, poly: &Poly) -> String {
+    let mut res = String::new();
+    let mut keys: Vec<&Vec<i64>> = poly.monos.keys().collect();
     keys.sort();
     keys.reverse();
     let mut first = true;
@@ -167,18 +301,23 @@ pub fn poly_pp(spec : &IntegralSpec, poly : &Poly) -> String {
             }
             if *coef != BigRational::from_integer(BigInt::from(1)) || smono == "1" {
                 res.push_str(&coef.to_string());
-                if smono != "1" { res.push(' ') }
+                if smono != "1" {
+                    res.push(' ')
+                }
             }
-        } else { // negative
+        } else {
+            // negative
             if first {
                 first = false;
                 res.push('-');
             } else {
-              res.push_str(" - ");
+                res.push_str(" - ");
             }
             if *coef != BigRational::from_integer(BigInt::from(-1)) || smono == "1" {
                 res.push_str(&(-coef).to_string());
-                if smono != "1" { res.push(' ') }
+                if smono != "1" {
+                    res.push(' ')
+                }
             }
         }
         if smono != "1" {
@@ -188,7 +327,13 @@ pub fn poly_pp(spec : &IntegralSpec, poly : &Poly) -> String {
     res
 }
 
-pub fn integrate_spec(spec: &IntegralSpec, quiet_mode : bool, formula_mode : bool, stats_mode : bool) -> Result<BigRational, String> {
+pub fn integrate_spec(
+    spec: &IntegralSpec,
+    quiet_mode: bool,
+    formula_mode: bool,
+    stats_mode: bool,
+    debug: bool,
+) -> Result<BigRational, String> {
     let mut poly = Poly::new(spec.elements.len());
     let mut step = 1;
 
@@ -204,8 +349,15 @@ pub fn integrate_spec(spec: &IntegralSpec, quiet_mode : bool, formula_mode : boo
                 println!("  #monomials={nb_monos}   #coefficients={nb_coefs}");
             }
         }
-        poly = poly.integrate(spec, *var, from, to);
-        step += 1;
+        if (debug) {
+            poly = poly.integrateDebugger(spec, *var, from, to);
+            step += 1;
+        } else {
+            poly = poly.integrate(spec, *var, from, to);
+            println!("  {:?}", poly_pp(spec, &poly));
+
+            step += 1;
+        }
     }
 
     match poly.as_constant() {
@@ -214,14 +366,16 @@ pub fn integrate_spec(spec: &IntegralSpec, quiet_mode : bool, formula_mode : boo
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use num::{BigInt, BigRational};
 
     use crate::{integral::Bound, integral::IntegralSpec, integrator::poly_pp};
 
-    use super::{Poly, mk_one_mono, mono_pp, antideriv_mono, antideriv_coef, mono_subst_var, mono_subst_const};
+    use super::{
+        antideriv_coef, antideriv_mono, mk_one_mono, mono_pp, mono_subst_const, mono_subst_var,
+        Poly,
+    };
 
     #[test]
     fn test_one_monomial() {
@@ -235,7 +389,7 @@ mod tests {
         let x1ref = spec.register_var("x1".to_string());
         let _x2ref = spec.register_var("x2".to_string());
         let x3ref = spec.register_var("x3".to_string());
-        
+
         let one = mk_one_mono(3);
         let anti = antideriv_mono(&one, x1ref);
         assert_eq!(mono_pp(&spec, &anti), "x1");
@@ -260,7 +414,7 @@ mod tests {
         let smono = mono_subst_var(&mono, 5, 0);
         assert_eq!(smono, vec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
-    
+
     #[test]
     fn test_mono_subst_const() {
         let mono = vec![0, 0, 0, 0, 0, 1, 0, 0, 0, 0];
@@ -293,19 +447,29 @@ mod tests {
         let p4 = p3.integrate(&spec, x3ref, &Bound::Var("x1".to_string()), &Bound::One);
         assert_eq!(poly_pp(&spec, &p4), "-1/12 x1^4 + 1/6 x1^3 - 1/6 x1 + 1/12");
         let p5 = p4.integrate(&spec, x4ref, &Bound::Zero, &Bound::Var("x1".to_string()));
-        assert_eq!(poly_pp(&spec, &p5), "-1/12 x1^5 + 1/6 x1^4 - 1/6 x1^2 + 1/12 x1");
+        assert_eq!(
+            poly_pp(&spec, &p5),
+            "-1/12 x1^5 + 1/6 x1^4 - 1/6 x1^2 + 1/12 x1"
+        );
         let p6 = p5.integrate(&spec, x8ref, &Bound::Var("x1".to_string()), &Bound::One);
-        assert_eq!(poly_pp(&spec, &p6), "1/12 x1^6 - 1/4 x1^5 + 1/6 x1^4 + 1/6 x1^3 - 1/4 x1^2 + 1/12 x1");
+        assert_eq!(
+            poly_pp(&spec, &p6),
+            "1/12 x1^6 - 1/4 x1^5 + 1/6 x1^4 + 1/6 x1^3 - 1/4 x1^2 + 1/12 x1"
+        );
         let p7 = p6.integrate(&spec, x1ref, &Bound::Var("x2".to_string()), &Bound::One);
-        assert_eq!(poly_pp(&spec, &p7), "-1/84 x2^7 + 1/24 x2^6 - 1/30 x2^5 - 1/24 x2^4 + 1/12 x2^3 - 1/24 x2^2 + 1/280");
+        assert_eq!(
+            poly_pp(&spec, &p7),
+            "-1/84 x2^7 + 1/24 x2^6 - 1/30 x2^5 - 1/24 x2^4 + 1/12 x2^3 - 1/24 x2^2 + 1/280"
+        );
         let p8 = p7.integrate(&spec, x9ref, &Bound::Zero, &Bound::Var("x2".to_string()));
-        assert_eq!(poly_pp(&spec, &p8), "-1/84 x2^8 + 1/24 x2^7 - 1/30 x2^6 - 1/24 x2^5 + 1/12 x2^4 - 1/24 x2^3 + 1/280 x2");
+        assert_eq!(
+            poly_pp(&spec, &p8),
+            "-1/84 x2^8 + 1/24 x2^7 - 1/30 x2^6 - 1/24 x2^5 + 1/12 x2^4 - 1/24 x2^3 + 1/280 x2"
+        );
         let p9 = p8.integrate(&spec, x2ref, &Bound::Zero, &Bound::Var("x6".to_string()));
         assert_eq!(poly_pp(&spec, &p9), "-1/756 x6^9 + 1/192 x6^8 - 1/210 x6^7 - 1/144 x6^6 + 1/60 x6^5 - 1/96 x6^4 + 1/560 x6^2");
         let p10 = p9.integrate(&spec, x6ref, &Bound::Zero, &Bound::One);
         assert_eq!(poly_pp(&spec, &p10), "1/6720");
         // correct number of linear extensions: #le = 10! / 6720 = 540
-
     }
-
 }

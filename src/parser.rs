@@ -12,7 +12,7 @@ fn parse_bound(input: &str) -> Result<Bound, String> {
     match input {
         "0" => Ok(Bound::Zero),
         "1" => Ok(Bound::One),
-        var => Ok(Bound::Var(var.to_string()))
+        var => Ok(Bound::Var(var.to_string())),
     }
 }
 
@@ -24,10 +24,10 @@ fn parse_bounds(mut bound_specs: pest::iterators::Pairs<Rule>) -> Result<(Bound,
             bound_spec = bound_specs.next();
             match parse_bound(bound_spec.unwrap().as_str()) {
                 Err(e) => Err(e),
-                Ok(b2) => Ok((b1, b2))
+                Ok(b2) => Ok((b1, b2)),
             }
         }
-    }   
+    }
 }
 
 pub fn parse(source: &str) -> Result<IntegralSpec, String> {
@@ -53,12 +53,10 @@ pub fn parse(source: &str) -> Result<IntegralSpec, String> {
     for part in parts {
         //println!("part = {part}");
         match part.as_rule() {
-            Rule::int_header => {
-                match parse_bounds(part.into_inner()) {
-                    Err(e) => return Err(e),
-                    Ok((b1, b2)) => int_bounds.push((b1, b2))
-                }
-            }
+            Rule::int_header => match parse_bounds(part.into_inner()) {
+                Err(e) => return Err(e),
+                Ok((b1, b2)) => int_bounds.push((b1, b2)),
+            },
             Rule::int_footer => {
                 let var_name = part.as_str()[1..].to_string();
                 //println!("var = {var_name}");
@@ -124,7 +122,8 @@ mod tests {
         let spec = parse("Int_0^1 Int_0^x3 Int_x3^1 Int_x3^1 Int_0^x3 1 dx1 dx5 dx4 dx2 dx3");
         assert_eq!(spec.unwrap().elements.len(), 5);
 
-        let spec = parse("Int_0^1 Int_0^x_3 Int_x_3^1 Int_x_3^1 Int_0^x_3 1 dx_1 dx_5 dx_4 dx_2 dx_3");
+        let spec =
+            parse("Int_0^1 Int_0^x_3 Int_x_3^1 Int_x_3^1 Int_0^x_3 1 dx_1 dx_5 dx_4 dx_2 dx_3");
         assert_eq!(spec.unwrap().elements.len(), 5);
 
         let spec_ko = parse("Int_0^1 Int_0^x2 Int_x2^1 Int_x2^1 Int_0^x2 1 dx4 dx3 dx1 dx2");

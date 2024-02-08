@@ -18,6 +18,9 @@ struct Args {
     #[arg(short, long)]
     quiet: bool,
 
+    //Debug mode
+    #[arg(short, long)]
+    debug: bool,
     /// Compute linear extension count instead of integration result
     #[arg(short, long)]
     le: bool,
@@ -47,24 +50,32 @@ fn main() {
         println!("Rust(int)egrator v{VERSION_MAJOR}.{VERSION_MINOR}");
         println!("---------------------");
     }
-
+    //if config.debug {
+    // println!("Debug mode activé");
+    //}
     match parser::parse(&config.integral) {
         Err(e) => abort("Parse error", &e),
         Ok(spec) => {
             let nbvars = spec.var_map.len() + 1;
-            match integrate_spec(&spec, config.quiet, config.formula, config.stats) {
+            match integrate_spec(
+                &spec,
+                config.quiet,
+                config.formula,
+                config.stats,
+                config.debug,
+            ) {
                 Err(e) => abort("Integration error", &e),
                 Ok(res) => {
                     //println!("res = {:?}", res);
                     if config.le {
-                        let nres =
-                            res * maths::factorial(nbvars);
+                        let nres = res * maths::factorial(nbvars);
                         if !&config.quiet {
                             println!("#le = {nres}");
                         } else {
                             println!("{nres}");
                         }
-                    } else { // keep rational form
+                    } else {
+                        // keep rational form
                         let num = res.numer();
                         let den = BigInt::from(res.denom().clone());
                         println!("{num}/{den}");
