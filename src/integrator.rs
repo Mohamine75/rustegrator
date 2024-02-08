@@ -2,13 +2,13 @@ use crate::integral::Bound;
 use crate::integral::IntegralSpec;
 use num::{BigInt, BigRational, Signed};
 use std::collections::HashSet;
-use std::env;
-use std::fmt;
+use std::{fmt, process};
 use std::fmt::Binary;
 use std::fmt::Debug;
 use std::io::{self, Write};
 use std::time::Instant;
 use std::{collections::HashMap, ops::Mul};
+use std::fs::{File, OpenOptions};
 
 // For now, we will use usize for degrees but maybe
 // this should be generic using the num crate
@@ -191,9 +191,14 @@ impl Poly {
         let mut temps_perdu = Instant::now() - Instant::now();
         let now = Instant::now();
         let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("historique.txt")
+            .unwrap();
         for (mono, coef) in self.monos.iter() {
             println!("{}", mono_pp(spec, mono));
-            println!("{}", "appuyez sur une touche pour continuer");
+            println!("{}", "appuyez sur une touche pour continuer, entrez markdown pour ecrire markdown dans le fichier historique");
             let mut input = String::new();
             let tmp = Instant::now();
             io::stdin()
@@ -201,6 +206,9 @@ impl Poly {
                 .expect("Échec de la lecture de la ligne");
             let trimmed_input = input.trim();
             match trimmed_input {
+                "markdown" => if let Err(e) = writeln!(file,"markdown"){
+                    eprintln!("Probleme pour écrire sur le fichier {}",e);
+                }
                 _ => println!("On Continue"),
             }
             temps_perdu += tmp.elapsed();
@@ -248,6 +256,9 @@ impl Poly {
         print!("\n");
         let end = now.elapsed() - temps_perdu;
         println!("Temps écoulé: {:.10?}", end);
+        if let Err(e) = write!(file,"On a pris {:?} ", end){
+            eprintln!("Probleme pour écrire sur le fichier {}",e);
+        }
         return res;
     }
 }
@@ -336,7 +347,11 @@ pub fn integrate_spec(
 ) -> Result<BigRational, String> {
     let mut poly = Poly::new(spec.elements.len());
     let mut step = 1;
-
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open("historique.txt")
+        .unwrap();
     for (var, from, to) in spec.elements.iter() {
         if !quiet_mode {
             println!("Step {step}:");
@@ -351,10 +366,16 @@ pub fn integrate_spec(
         }
         if (debug) {
             poly = poly.integrateDebugger(spec, *var, from, to);
+           // let memory = virtual_memory().expect("Impossible d'obtenir les informations sur la mémoire");
+            let current_pid = process::id();
+            if let Err(e) = writeln!(file,"pour créer le polynome {:?}. L'espace mémoire occupé est de TODO ", poly_pp(spec,&poly)){
+                eprintln!("Probleme pour écrire sur le fichier {}",e);
+            }
             step += 1;
         } else {
             poly = poly.integrate(spec, *var, from, to);
             println!("  {:?}", poly_pp(spec, &poly));
+
 
             step += 1;
         }
