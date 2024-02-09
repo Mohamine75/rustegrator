@@ -338,6 +338,8 @@ pub fn poly_pp(spec: &IntegralSpec, poly: &Poly) -> String {
     res
 }
 
+
+// Adapté au debugger
 pub fn integrate_spec(
     spec: &IntegralSpec,
     quiet_mode: bool,
