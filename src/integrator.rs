@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::{fmt, process};
 use std::fmt::Binary;
 use std::fmt::Debug;
-use std::io::{self, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::time::Instant;
 use std::{collections::HashMap, ops::Mul};
 use std::fs::{File, OpenOptions};
@@ -338,6 +338,19 @@ pub fn poly_pp(spec: &IntegralSpec, poly: &Poly) -> String {
     res
 }
 
+pub fn integrate_from_string(spec: &IntegralSpec, line: &str) -> Poly {
+    // Implémentez la logique pour intégrer une ligne de texte ici
+    // Utilisez spec et line pour créer et intégrer le polynôme
+    // Vous pouvez également imprimer des informations de débogage si debug est vrai
+
+    // Exemple simplifié:
+    let mut poly = Poly::new(spec.elements.len());
+    for (var, from, to) in spec.elements.iter() {
+        poly = poly.integrateDebugger(spec, *var, from, to);
+    }
+
+    poly
+}
 
 // Adapté au debugger
 pub fn integrate_spec(
@@ -346,40 +359,62 @@ pub fn integrate_spec(
     formula_mode: bool,
     stats_mode: bool,
     debug: bool,
+    file:String
 ) -> Result<BigRational, String> {
     let mut poly = Poly::new(spec.elements.len());
     let mut step = 1;
-    let mut file = OpenOptions::new()
+    let mut file_history = OpenOptions::new()
         .write(true)
         .append(true)
+        .create(true)
         .open("historique.txt")
-        .unwrap();
-    for (var, from, to) in spec.elements.iter() {
-        if !quiet_mode {
-            println!("Step {step}:");
-            if formula_mode {
-                println!("  {:?}", poly_pp(spec, &poly));
-            }
-            if stats_mode {
-                let nb_monos = &poly.number_of_monos();
-                let nb_coefs = &poly.number_of_distinct_coefs();
-                println!("  #monomials={nb_monos}   #coefficients={nb_coefs}");
+        .expect("Impossible d'ouvrir le fichier historique.txt");
+    if !file.is_empty() {
+        let fichier_integrales = OpenOptions::new()
+            .read(true)
+            .open(&file)
+            .unwrap();
+
+        let file_reader = BufReader::new(fichier_integrales);
+
+        for line in file_reader.lines() {
+            if let Ok(trimmed_line) = line {
+                let trimmed_line = trimmed_line.trim();
+                if !trimmed_line.is_empty() {
+                    if let Err(e) = writeln!(file_history, "Intégrale lue depuis le fichier : {:?}", trimmed_line) {
+                        eprintln!("Problème lors de l'écriture sur le fichier historique.txt : {}", e);
+                    }
+
+                    let integrated_poly = integrate_from_string(spec, &trimmed_line);
+                    // Continuez avec le polynôme intégré...
+                }
             }
         }
-        if (debug) {
-            poly = poly.integrateDebugger(spec, *var, from, to);
-           // let memory = virtual_memory().expect("Impossible d'obtenir les informations sur la mémoire");
-            let current_pid = process::id();
-            if let Err(e) = writeln!(file,"pour créer le polynome {:?}. L'espace mémoire occupé est de TODO ", poly_pp(spec,&poly)){
-                eprintln!("Probleme pour écrire sur le fichier {}",e);
+    }else {
+        for (var, from, to) in spec.elements.iter() {
+            if !quiet_mode {
+                println!("Step {step}:");
+                if formula_mode {
+                    println!("  {:?}", poly_pp(spec, &poly));
+                }
+                if stats_mode {
+                    let nb_monos = &poly.number_of_monos();
+                    let nb_coefs = &poly.number_of_distinct_coefs();
+                    println!("  #monomials={nb_monos}   #coefficients={nb_coefs}");
+                }
             }
-            step += 1;
-        } else {
-            poly = poly.integrate(spec, *var, from, to);
-            println!("  {:?}", poly_pp(spec, &poly));
-
-
-            step += 1;
+            if debug {
+                poly = poly.integrateDebugger(spec, *var, from, to);
+                // let memory = virtual_memory().expect("Impossible d'obtenir les informations sur la mémoire");
+                if let Err(e) = writeln!(file_history, "pour créer le polynome {:?}. L'espace mémoire occupé est de TODO ", poly_pp(spec, &poly)) {
+                    eprintln!("Probleme pour écrire sur le fichier {}", e);
+                }
+                step += 1;
+            } else {
+                poly = poly.integrate(spec, *var, from, to);
+                println!("  {:?}", poly_pp(spec, &poly));
+                step += 1;
+            }
         }
     }
 
@@ -387,6 +422,7 @@ pub fn integrate_spec(
         None => Err("Stuck integral".to_string()),
         Some(res) => Ok(res),
     }
+
 }
 
 #[cfg(test)]

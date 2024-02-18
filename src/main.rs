@@ -25,6 +25,10 @@ struct Args {
     #[arg(short, long)]
     le: bool,
 
+    /// Take a file in
+    #[arg(long)]
+    file:String,
+
     /// Show formula at each integration step
     #[arg(short, long)]
     formula: bool,
@@ -63,6 +67,7 @@ fn main() {
                 config.formula,
                 config.stats,
                 config.debug,
+                config.file
             ) {
                 Err(e) => abort("Integration error", &e),
                 Ok(res) => {
