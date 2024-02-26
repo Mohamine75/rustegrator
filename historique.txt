@@ -1,30 +1,10 @@
-On a pris 661.9µs pour créer le polynome "x_3". L'espace mémoire occupé est de TODO 
-On a pris 738.5µs pour créer le polynome "-x_3^2 + x_3". L'espace mémoire occupé est de TODO 
-markdown
-On a pris 1.1136ms pour créer le polynome "x_3^3 - 2 x_3^2 + x_3". L'espace mémoire occupé est de TODO 
-On a pris 2.1569ms pour créer le polynome "x_3^4 - 2 x_3^3 + x_3^2". L'espace mémoire occupé est de TODO 
-markdown
-On a pris 2.0413ms pour créer le polynome "1/30". L'espace mémoire occupé est de TODO 
-markdown
-On a pris 571.8µs pour créer le polynome "x_3". L'espace mémoire occupé est de TODO 
-On a pris 597.9µs pour créer le polynome "-x_3^2 + x_3". L'espace mémoire occupé est de TODO 
-On a pris 1.4304ms pour créer le polynome "x_3^3 - 2 x_3^2 + x_3". L'espace mémoire occupé est de TODO 
-On a pris 1.6348ms pour créer le polynome "x_3^4 - 2 x_3^3 + x_3^2". L'espace mémoire occupé est de TODO 
-On a pris 1.7773ms pour créer le polynome "1/30". L'espace mémoire occupé est de TODO 
+Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 533.1µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 591.6µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 624µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
 Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
 Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 630.4µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 565.5µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 510.9µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 554µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 549.1µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 550.3µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 522.8µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 496.4µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 523.6µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 557.2µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 546.8µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 550.8µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 559.9µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 600.4µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 552.6µs 
+Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 595.9µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 592.4µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
+On a pris 630.6µs 

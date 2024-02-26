@@ -46,6 +46,11 @@ fn mono_pp(spec: &IntegralSpec, mono: &Vec<i64>) -> String {
     }
 }
 
+/**
+*  We have n element in the vector mono, we do 1 comparison per element,
+    the complexity of this function is O(n).
+    The worst case is the best case, the function has go through the whole vector everytime.
+**/
 fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     let mut res = Vec::new();
     for (i, &d) in mono.iter().enumerate() {
@@ -58,6 +63,9 @@ fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     res
 }
 
+/**
+* The complexity must be O(1) , we assume that mono[var_num] is direct access in O(1)
+*/
 fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRational {
     return coef.mul(BigRational::new(
         BigInt::from(1),
@@ -65,6 +73,10 @@ fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRat
     ));
 }
 
+
+/**
+*   O(1)
+**/
 fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
     nmono[by_var] += mono[subst_var];
@@ -72,6 +84,9 @@ fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> 
     nmono
 }
 
+/**
+* O(1)
+**/
 fn mono_subst_const(mono: &Vec<i64>, subst_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
     nmono[subst_var] = 0;
@@ -88,10 +103,14 @@ impl Poly {
         Poly { nbvars, monos }
     }
 
+
     pub fn number_of_monos(&self) -> usize {
         self.monos.len()
     }
-
+    /**
+     * This function has to go through the whole vector everytime, in consequence it's complexity
+        is O(n)
+     */
     pub fn number_of_distinct_coefs(&self) -> usize {
         let mut coefs = HashSet::new();
         for (_, coef) in self.monos.iter() {
@@ -100,6 +119,10 @@ impl Poly {
         coefs.len()
     }
 
+    /**
+     * Best case : the mono has a length bigger than 1, O(1)
+    *  Worse case : it has a length !=1, the complexity of the function is O(n)
+     **/
     pub fn is_constant(self) -> bool {
         if self.monos.len() != 1 {
             return false;
@@ -114,6 +137,10 @@ impl Poly {
         return true;
     }
 
+    /**
+    *   Complexity : O(1)
+        TODO
+    **/
     pub fn as_constant(self) -> Option<BigRational> {
         if self.monos.len() != 1 {
             return None;
@@ -130,6 +157,12 @@ impl Poly {
         return None;
     }
 
+    /**
+    * in the loop we use :
+    antideriv_mono which is a O(n) worst case complexity fun
+    antideriv_coef which is O(1)
+    worst case : O(n²), TODO explanation
+    **/
     pub fn integrate(self, spec: &IntegralSpec, var: usize, from: &Bound, to: &Bound) -> Poly {
         let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
         for (mono, coef) in self.monos.iter() {

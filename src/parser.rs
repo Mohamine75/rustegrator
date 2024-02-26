@@ -64,6 +64,7 @@ pub fn parse(source: &str) -> Result<IntegralSpec, String> {
                 int_vars.push(var_ref);
             }
             _ => panic!("Unexpected case"),
+
         }
     }
 

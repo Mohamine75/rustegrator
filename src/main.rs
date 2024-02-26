@@ -37,6 +37,7 @@ struct Args {
     #[arg(short, long)]
     stats: bool,
 
+    #[arg(long)]
     /// The integral to compute
     integral: String,
 }
@@ -48,6 +49,7 @@ fn abort(header: &str, msg: &str) {
 }
 
 fn main() {
+
     let config = Args::parse();
 
     if !&config.quiet {
@@ -58,6 +60,7 @@ fn main() {
     // println!("Debug mode activé");
     //}
     match parser::parse(&config.integral) {
+
         Err(e) => abort("Parse error", &e),
         Ok(spec) => {
             let nbvars = spec.var_map.len() + 1;
