@@ -47,9 +47,11 @@ fn mono_pp(spec: &IntegralSpec, mono: &Vec<i64>) -> String {
 }
 
 /**
-*  We have n element in the vector mono, we do 1 comparison per element,
+*   We have n element in the vector mono, we do 1 comparison per element,
     the complexity of this function is O(n).
-    The worst case is the best case, the function has go through the whole vector everytime.
+    The worst case is the best case, the function has to go through the whole vector everytime.
+    idea :  not copying the value, but modify it directly, we would need to run antideriv_coef first
+    because it needs the value before the modification.
 **/
 fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     let mut res = Vec::new();
@@ -75,7 +77,8 @@ fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRat
 
 
 /**
-*   O(1)
+*   O(n).
+    To clone n elements, it must take O(n).
 **/
 fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
@@ -85,7 +88,7 @@ fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> 
 }
 
 /**
-* O(1)
+* O(n) for the same reasons.
 **/
 fn mono_subst_const(mono: &Vec<i64>, subst_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
@@ -121,7 +124,9 @@ impl Poly {
 
     /**
      * Best case : the mono has a length bigger than 1, O(1)
-    *  Worse case : it has a length !=1, the complexity of the function is O(n)
+    *  Worse case : it has a length >1 and all of mono in monos have their degree equal to 0. it would
+    be O(n)
+
      **/
     pub fn is_constant(self) -> bool {
         if self.monos.len() != 1 {
@@ -138,8 +143,7 @@ impl Poly {
     }
 
     /**
-    *   Complexity : O(1)
-        TODO
+    *   same function than above, only the return type differs
     **/
     pub fn as_constant(self) -> Option<BigRational> {
         if self.monos.len() != 1 {
@@ -159,14 +163,18 @@ impl Poly {
 
     /**
     * in the loop we use :
-    antideriv_mono which is a O(n) worst case complexity fun
+    Let assume that per mono, we have n element, and that in monos we have m mono,
+    for the entire loop, for each iteration :
+        - antideriv_mono which is a O(n) worst case complexity fun
     antideriv_coef which is O(1)
+    mono_subst_var O(n)
     worst case : O(n²), TODO explanation
     **/
     pub fn integrate(self, spec: &IntegralSpec, var: usize, from: &Bound, to: &Bound) -> Poly {
         let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
         for (mono, coef) in self.monos.iter() {
             let amono = antideriv_mono(mono, var);
+            // TODO invert this two lines, take the address of mono
             let acoef = antideriv_coef(coef, mono, var);
             let lmono: Option<Vec<i64>> = match &to {
                 Bound::Zero => None,
@@ -188,7 +196,7 @@ impl Poly {
                 Bound::Zero => None,
                 Bound::One => Some(mono_subst_const(&amono, var)),
                 Bound::Var(by_var) => {
-                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
+                    Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone()))) // O(n)
                 }
             };
 
