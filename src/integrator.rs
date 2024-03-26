@@ -178,7 +178,7 @@ impl Poly {
             let acoef = antideriv_coef(coef, mono, var);
             let lmono: Option<Vec<i64>> = match &to {
                 Bound::Zero => None,
-                Bound::One => Some(mono_subst_const(&amono, var)),
+                 Bound::One => Some(mono_subst_const(&amono, var)),
                 Bound::Var(by_var) => {
                     Some(mono_subst_var(&amono, var, spec.var_ref(by_var.clone())))
                 }

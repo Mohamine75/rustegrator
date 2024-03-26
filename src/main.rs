@@ -3,6 +3,7 @@ mod integrator;
 mod maths;
 mod parser;
 mod version;
+mod integralGenerator;
 
 use clap::Parser;
 use num::BigInt;
