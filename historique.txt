@@ -1,10 +1,33 @@
-Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 533.1µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 591.6µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 624µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 595.9µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 592.4µs Intégrale lue depuis le fichier : "Int_0^1Int_0^x_3Int_x_3^1Int_x_3^1Int_0^x_3 1 dx_1dx_5dx_4dx_2dx_3"
-On a pris 630.6µs 
+1.0759ms
+2.0322ms
+2.8951ms
+3.1178ms
+4.9199ms
+4.3376ms
+47.261ms
+18.7665ms
+47.7019ms
+11.4056ms
+86.4451ms
+56.7044ms
+46.7584ms
+71.9063ms
+46.2639ms
+82.5889ms
+51.0479ms
+101.5409ms
+488.4558ms
+204.4637ms
+232.2953ms
+674.7529ms
+1.1081202s
+499.7903ms
+1.0137465s
+2.7966856s
+2.5801386s
+3.7933475s
+6.8472049s
+3.6578216s
+13.2465723s
+12.2756988s
+18.5303627s

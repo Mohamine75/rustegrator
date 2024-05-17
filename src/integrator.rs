@@ -5,10 +5,11 @@ use std::collections::HashSet;
 use std::{fmt, process};
 use std::fmt::Binary;
 use std::fmt::Debug;
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 use std::time::Instant;
 use std::{collections::HashMap, ops::Mul};
 use std::fs::{File, OpenOptions};
+use crate::{abort, parser};
 
 // For now, we will use usize for degrees but maybe
 // this should be generic using the num crate
@@ -75,6 +76,14 @@ fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRat
     ));
 }
 
+/**
+Idée d'amelioration, mais enfait on peut pas. Dans tout les cas il faudra reparcourir tout et le modifier
+**/
+fn antideriv_mono_address(mono: &mut Vec<i64>, var_num: usize) {
+    if var_num < mono.len() {
+        mono[var_num] += 1;  // Modification de l'élément à `var_num` index
+    }
+}
 
 /**
 *   O(n).
@@ -110,10 +119,6 @@ impl Poly {
     pub fn number_of_monos(&self) -> usize {
         self.monos.len()
     }
-    /**
-     * This function has to go through the whole vector everytime, in consequence it's complexity
-        is O(n)
-     */
     pub fn number_of_distinct_coefs(&self) -> usize {
         let mut coefs = HashSet::new();
         for (_, coef) in self.monos.iter() {
@@ -122,12 +127,6 @@ impl Poly {
         coefs.len()
     }
 
-    /**
-     * Best case : the mono has a length bigger than 1, O(1)
-    *  Worse case : it has a length >1 and all of mono in monos have their degree equal to 0. it would
-    be O(n)
-
-     **/
     pub fn is_constant(self) -> bool {
         if self.monos.len() != 1 {
             return false;
@@ -141,10 +140,6 @@ impl Poly {
         }
         return true;
     }
-
-    /**
-    *   same function than above, only the return type differs
-    **/
     pub fn as_constant(self) -> Option<BigRational> {
         if self.monos.len() != 1 {
             return None;
@@ -161,21 +156,13 @@ impl Poly {
         return None;
     }
 
-    /**
-    * in the loop we use :
-    Let assume that per mono, we have n element, and that in monos we have m mono,
-    for the entire loop, for each iteration :
-        - antideriv_mono which is a O(n) worst case complexity fun
-    antideriv_coef which is O(1)
-    mono_subst_var O(n)
-    worst case : O(n²), TODO explanation
-    **/
     pub fn integrate(self, spec: &IntegralSpec, var: usize, from: &Bound, to: &Bound) -> Poly {
         let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
-        for (mono, coef) in self.monos.iter() {
+        for (mut mono, coef) in self.monos.iter() {
             let amono = antideriv_mono(mono, var);
-            // TODO invert this two lines, take the address of mono
             let acoef = antideriv_coef(coef, mono, var);
+
+
             let lmono: Option<Vec<i64>> = match &to {
                 Bound::Zero => None,
                  Bound::One => Some(mono_subst_const(&amono, var)),
@@ -189,7 +176,6 @@ impl Poly {
                     .entry(llmono)
                     .or_insert(BigRational::from_integer(BigInt::from(0)));
                 *entry += &acoef;
-                print!("")
             }
 
             let rmono: Option<Vec<i64>> = match &from {
@@ -214,7 +200,6 @@ impl Poly {
             monos: nmonos,
         };
         //print!("{}", res);
-        print!("\n");
 
         return res;
     }
@@ -230,6 +215,7 @@ impl Poly {
         to: &Bound,
     ) -> Poly {
         let mut temps_perdu = Instant::now() - Instant::now();
+        println!("{}", self);
         let now = Instant::now();
         let mut nmonos: HashMap<Vec<i64>, BigRational> = HashMap::new();
         let mut file = OpenOptions::new()
@@ -297,7 +283,7 @@ impl Poly {
         print!("\n");
         let end = now.elapsed() - temps_perdu;
         println!("Temps écoulé: {:.10?}", end);
-        if let Err(e) = write!(file,"On a pris {:?} ", end){
+        if let Err(e) = writeln!(file,"{:?}", end){
             eprintln!("Probleme pour écrire sur le fichier {}",e);
         }
         return res;
@@ -379,92 +365,98 @@ pub fn poly_pp(spec: &IntegralSpec, poly: &Poly) -> String {
     res
 }
 
-pub fn integrate_from_string(spec: &IntegralSpec, line: &str) -> Poly {
-    // Implémentez la logique pour intégrer une ligne de texte ici
-    // Utilisez spec et line pour créer et intégrer le polynôme
-    // Vous pouvez également imprimer des informations de débogage si debug est vrai
 
-    // Exemple simplifié:
-    let mut poly = Poly::new(spec.elements.len());
-    for (var, from, to) in spec.elements.iter() {
-        poly = poly.integrateDebugger(spec, *var, from, to);
-    }
-
-    poly
-}
 
 // Adapté au debugger
-pub fn integrate_spec(
-    spec: &IntegralSpec,
-    quiet_mode: bool,
-    formula_mode: bool,
-    stats_mode: bool,
-    debug: bool,
-    file:String
-) -> Result<BigRational, String> {
+
+
+pub fn integrate_file(spec: &IntegralSpec){
     let mut poly = Poly::new(spec.elements.len());
     let mut step = 1;
-    let mut file_history = OpenOptions::new()
+    let mut file = OpenOptions::new()
         .write(true)
         .append(true)
         .create(true)
         .open("historique.txt")
         .expect("Impossible d'ouvrir le fichier historique.txt");
-    if !file.is_empty() {
+    let debut = Instant::now();
+    for (var, from, to) in spec.elements.iter() {
+        poly = poly.integrate(spec, *var, from, to);
+        step += 1;
+    }
+    let end = Instant::now();
+    let time_passed = end.duration_since(debut);
+    writeln!(file, "{:?}", time_passed)
+        .expect("Unable to write to file");
+    println!("{:?}", time_passed);
+    file.flush().expect("Unable to flush file");
+}
+pub fn integrate_spec(
+    spec: &IntegralSpec,
+    quiet_mode: bool,
+    formula_mode: bool,
+    stats_mode: bool,
+    //debug: bool, unused
+) -> Result<BigRational, String> {
+    let mut poly = Poly::new(spec.elements.len());
+    let mut step = 1;
+            for (var, from, to) in spec.elements.iter() {
+                if !quiet_mode {
+                    println!("Step {step}:");
+                    if formula_mode {
+                        println!("  {:?}", poly_pp(spec, &poly));
+                    }
+                    if stats_mode {
+                        let nb_monos = &poly.number_of_monos();
+                        let nb_coefs = &poly.number_of_distinct_coefs();
+                        println!("  #monomials={nb_monos}   #coefficients={nb_coefs}");
+                    }
+                }
+                /*if debug {
+                    poly = poly.integrateDebugger(spec, *var, from, to);
+                    // let memory = virtual_memory().expect("Impossible d'obtenir les informations sur la mémoire");
+                    if let Err(e) = writeln!(file_history, "pour créer le polynome {:?}. L'espace mémoire occupé est de TODO ", poly_pp(spec, &poly)) {
+                        eprintln!("Probleme pour écrire sur le fichier {}", e);
+                    }
+                    step += 1;
+                } else {*/
+                    poly = poly.integrate(spec, *var, from, to);
+                    println!("  {:?}", poly_pp(spec, &poly));
+                    step += 1;
+              //  }
+            }
+
+
+        match poly.as_constant() {
+            None => Err("Stuck integral".to_string()),
+            Some(res) => Ok(res),
+        }
+    }
+
+
+pub fn integrate_spec_file(
+    file: String){
         let fichier_integrales = OpenOptions::new()
             .read(true)
-            .open(&file)
+            .open(file)
             .unwrap();
-
         let file_reader = BufReader::new(fichier_integrales);
 
         for line in file_reader.lines() {
             if let Ok(trimmed_line) = line {
                 let trimmed_line = trimmed_line.trim();
                 if !trimmed_line.is_empty() {
-                    if let Err(e) = writeln!(file_history, "Intégrale lue depuis le fichier : {:?}", trimmed_line) {
-                        eprintln!("Problème lors de l'écriture sur le fichier historique.txt : {}", e);
+                    match parser::parse(trimmed_line) {
+                        Ok(spec) => {
+                            integrate_file(&spec);
+                        }
+                        Err(e) => abort("Parse error", &e),
                     }
 
-                    let integrated_poly = integrate_from_string(spec, &trimmed_line);
-                    // Continuez avec le polynôme intégré...
                 }
             }
         }
-    }else {
-        for (var, from, to) in spec.elements.iter() {
-            if !quiet_mode {
-                println!("Step {step}:");
-                if formula_mode {
-                    println!("  {:?}", poly_pp(spec, &poly));
-                }
-                if stats_mode {
-                    let nb_monos = &poly.number_of_monos();
-                    let nb_coefs = &poly.number_of_distinct_coefs();
-                    println!("  #monomials={nb_monos}   #coefficients={nb_coefs}");
-                }
-            }
-            if debug {
-                poly = poly.integrateDebugger(spec, *var, from, to);
-                // let memory = virtual_memory().expect("Impossible d'obtenir les informations sur la mémoire");
-                if let Err(e) = writeln!(file_history, "pour créer le polynome {:?}. L'espace mémoire occupé est de TODO ", poly_pp(spec, &poly)) {
-                    eprintln!("Probleme pour écrire sur le fichier {}", e);
-                }
-                step += 1;
-            } else {
-                poly = poly.integrate(spec, *var, from, to);
-                println!("  {:?}", poly_pp(spec, &poly));
-                step += 1;
-            }
-        }
     }
-
-    match poly.as_constant() {
-        None => Err("Stuck integral".to_string()),
-        Some(res) => Ok(res),
-    }
-
-}
 
 #[cfg(test)]
 mod tests {

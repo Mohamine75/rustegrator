@@ -12,4 +12,9 @@ pest_derive = "2.6.1"
 num = "0.4"
 num-traits = "0.2.15"
 num-bigint = "0.4.3"
-
+rand = "0.9.0-alpha.1"
+regex = "1.10.4"
+config = "0.14.0"
+[[bin]]
+name = "create_integrale"
+path = "src/create_integral.rs"
