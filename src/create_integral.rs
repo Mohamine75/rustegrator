@@ -4,14 +4,11 @@ use std::io::{self, BufRead, BufWriter, Write};
 use std::path::Path;
 use std::time::Instant;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 use regex::Regex;
-use crate::transitive_reduction::{apply_transitive_reduction, create_ordre_topologique, transitive_reduction_topologique};
-use crate::generator_matrix::generer_matrice_arite_hasard;
-use crate::generator_matrix::generer_matrice_arite_un;
-use crate::resolution_using_lists::resolution_adjacence;
+use crate::generator_matrix::one_arity_matrix_generator;
+use crate::generator_matrix::random_arity_matrix_generator;
+use crate::resolution_using_lists::list_BIT_resolution;
 use crate::resolution_using_hashmap::Graph;
-// Importe la fonction pour obtenir un générateur de nombres aléatoires
 mod transitive_reduction;
 mod generator_matrix;
 mod resolution_using_lists;
@@ -68,11 +65,6 @@ fn lire_matrice_à_partir_du_fichier(chemin: &str) -> Vec<Vec<i32>> {
 }
 
 
-
-
-/**
-Adjacency list with HashMap
- **/
 
 
 /// Constructs an adjacency list from a matrix.
@@ -163,19 +155,19 @@ fn main() {
     let mut file3 = BufWriter::new(file3);
     let mut integrales = BufWriter::new(integrales);
 
-    let testMatricehasard = generer_matrice_arite_hasard(6);
+    let testMatricehasard = one_arity_matrix_generator(6);
     println!("{:?}", testMatricehasard);
 
     for size in 5..=150 {
-        let matrix = generer_matrice_arite_un(size);
+        let matrix = one_arity_matrix_generator(size);
         // Pour générer des matrices d'arite plus complexe
-        //let matrix = generer_matrice_arite_hasard(size);
+        //let matrix = random_arity_matrix_generator(size);
         let matrix2 = matrix.clone();
         let adj = construire_adj(matrix2.clone());
         let pred = construire_pred(&adj);
         let mut g = Graph::new(adj, pred, matrix2.len());
         let start_time = Instant::now();
-        let _results = resolution_adjacence(matrix);
+        let _results = list_BIT_resolution(matrix);
         let duration = start_time.elapsed();
 
         let start_time2 = Instant::now();

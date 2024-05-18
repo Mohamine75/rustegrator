@@ -9,7 +9,7 @@ use crate::transitive_reduction::{apply_transitive_reduction, create_ordre_topol
 ///
 /// # Returns
 /// A formatted string representing the integral expressions derived from the adjacency matrix after resolution.
-pub(crate) fn resolution_adjacence(mut matrice: Vec<Vec<i32>>) -> String {
+pub(crate) fn list_BIT_resolution(mut matrice: Vec<Vec<i32>>) -> String {
     let mut cpt = 0;
     let mut lastmodified_line = 0;
     let mut prefixe = " 1 ".to_string();
@@ -142,36 +142,13 @@ fn transitive_reduction_using_floyd_warshall(matrice: Vec<Vec<i32>>) -> Vec<Vec<
     reduction
 }
 
-/// Verifies that a result string contains all expected node indices in a sequence from 0 to `taille-1`.
-///
-/// # Arguments
-/// * `resultat` - The result string containing indices.
-/// * `taille` - The expected number of indices.
-///
-/// # Returns
-/// True if all indices are present and in order, otherwise false.
-fn verifier_indices(resultat: &str, taille: usize) -> bool {
-    let re = Regex::new(r"dx_(\d+)").unwrap();
-    println!("{}", re);
-    let mut indices = HashSet::new();
-
-    for cap in re.captures_iter(resultat) {
-        if let Some(matched) = cap.get(1) {
-            if let Ok(num) = matched.as_str().parse::<usize>() {
-                indices.insert(num);
-            }
-        }
-    }
-
-    (0..taille).all(|i| indices.contains(&i))
-}
 
 
 
 
 #[cfg(test)]
 mod tests {
-    fn resolution_adjacence_test(mut matrice: Vec<Vec<i32>>) -> (String, Vec<Vec<i32>>) {
+    fn bit_decomposition_test(mut matrice: Vec<Vec<i32>>) -> (String, Vec<Vec<i32>>) {
         let mut cpt = 0;
         let mut lastmodified_line = 0;
         let mut prefixe = " 1 ".to_string();
@@ -227,7 +204,7 @@ mod tests {
         suffixe = suffixe + "dx" + &lastmodified_line.to_string();
         (prefixe.to_owned() + &*suffixe, matrice)
     }
-    use crate::generator_matrix::{add_node, generer_matrice_arite_hasard, generer_matrice_arite_un};
+    use crate::generator_matrix::{add_node, one_arity_matrix_generator, random_arity_matrix_generator};
     use crate::verify_all_zero;
     use super::*;
 
@@ -237,9 +214,9 @@ mod tests {
             for _ in 0..10{
                 println!("{}",i);
                 let size = i; // Taille de la matrice pour le test
-                let matrice = generer_matrice_arite_un(size);
-                let (_, matrice_apres) = resolution_adjacence_test(matrice);
-                assert!(verify_all_zero(matrice_apres), "Matrice non résolue");
+                let matrice = random_arity_matrix_generator(size);
+                let (_, matrice_apres) = bit_decomposition_test(matrice);
+                assert!(verify_all_zero(matrice_apres), "Unresolved matrix");
             }
         }
     }
@@ -251,9 +228,9 @@ mod tests {
             for _ in 0..10{
                 println!("{}",i);
                 let size = i; // Taille de la matrice pour le test
-                let matrice = generer_matrice_arite_hasard(size);
-                let (_, matrice_apres) = resolution_adjacence_test(matrice);
-                assert!(verify_all_zero(matrice_apres), "Matrice non résolue");
+                let matrice = random_arity_matrix_generator(size);
+                let (_, matrice_apres) = bit_decomposition_test(matrice);
+                assert!(verify_all_zero(matrice_apres), "Unresolved matrix");
             }
         }
     }
@@ -262,11 +239,11 @@ mod tests {
     fn test_ajout_noeud_matrice() {
         for i in 4..30 {
             for _ in 0..10 {
-                let mut matrice = generer_matrice_arite_un(i); // Generate une matrice initiale d'arité 1
-                assert_eq!(matrice.len(), i, "Taille initiale incorrecte");
+                let mut matrice = random_arity_matrix_generator(i); // Generate une matrice initiale d'arité 1
+                assert_eq!(matrice.len(), i, "The initial size is incorrect");
                 add_node(&mut matrice); // Ajouter un nouveau nœud
-                assert_eq!(matrice.len(), i+1, "Échec de l'ajout d'un noeud");
-                assert!(matrice.iter().all(|row| row.len() == i+1), "Les lignes ne sont pas de la bonne longueur après ajout");
+                assert_eq!(matrice.len(), i+1, "Couldn't add the node");
+                assert!(matrice.iter().all(|row| row.len() == i+1), "Lines are not the right length after adding");
             }
         }
     }

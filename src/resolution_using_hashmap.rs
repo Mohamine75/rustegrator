@@ -71,7 +71,6 @@ impl Graph {
                         self.pred.insert(cpt, vec![]);
                         prefixe = format!("Int_x{}^1{}", pred_node, prefixe);
                         suffixe += &format!("dx{}", cpt);
-                        //lastmodified_line = index_sortante;
                         cpt = 0;
                         continue;
                     } else if preds.len() == 1 && sortante == 1 {
@@ -134,11 +133,11 @@ impl Graph {
     }
 
     /// Performs a transitive reduction using a simplified Floyd-Warshall algorithm adapted for graphs represented with hash maps.
+    /// We don't use it in the project, it doens't work for long paths
      fn transitive_reduction_floyd_warshall(&mut self) {
         // Use a temporary copy of the adjacency list for calculations without altering the original during iteration
         let adj_copy = self.adj.clone();
 
-        // Simplified transitive closure computation adapted for HashMap usage
         for k in 0..self.size {
             if let Some(nodes_reachable_from_k) = adj_copy.get(&k) {
                 for &i in nodes_reachable_from_k {
@@ -213,7 +212,7 @@ impl Graph {
 
 mod tests {
     use crate::construire_adj;
-    use crate::generator_matrix::generer_matrice_arite_un;
+    use crate::generator_matrix::{one_arity_matrix_generator, random_arity_matrix_generator};
     use super::*;
 
     #[test]
@@ -222,19 +221,19 @@ mod tests {
             for _ in 0..10 {
                 println!("{}", i);
                 let size = i;
-                let matrice = generer_matrice_arite_un(size);
+                let matrice = random_arity_matrix_generator(size);
                 let u = matrice.len();
                 let adj = construire_adj(matrice);
                 let pred = construire_pred(&adj);
                 let mut g = Graph::new(adj, pred, u);
 
                 g.resolution_adjacence();
-                assert!(g.verify_all_zero(), "Le graphe n'a pas été correctement résolu");
+                assert!(g.verify_all_zero(), "Couldn't resolve the DAG using BIT decomposition");
             }
         }
     }
 
-    // Fonction helper pour vérifier que tous les noeuds sont résolus
+    // Fonction helper pour vérifier que tous les nœuds sont résolus
     impl Graph {
         pub fn verify_all_zero(&self) -> bool {
             self.adj.values().all(|edges| edges.iter().all(|&x| x == 0))

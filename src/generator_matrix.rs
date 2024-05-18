@@ -20,10 +20,10 @@ use rand::seq::SliceRandom;
 /// # Examples
 ///
 /// ```
-/// let matrix = generer_matrice_arite_un(5);
+/// let matrix = one_arity_matrix_generator(5);
 /// assert_eq!(matrix.len(), 5);
 /// ```
-pub fn generer_matrice_arite_un(max_size: usize) -> Vec<Vec<i32>> {
+pub fn one_arity_matrix_generator(max_size: usize) -> Vec<Vec<i32>> {
     let mut matrice = vec![vec![0; max_size]; max_size]; // Initialize the adjacency matrix.
     let mut rng = thread_rng(); // Create a random number generator.
 
@@ -86,11 +86,11 @@ pub fn add_node(matrice: &mut Vec<Vec<i32>>) {
 /// # Examples
 ///
 /// ```
-/// let matrix = generer_matrice_arite_hasard(5);
+/// let matrix = random_arity_matrix_generator(5);
 /// assert_eq!(matrix.len(), 5); // The matrix should have 5 rows
 /// ```
-pub fn generer_matrice_arite_hasard(size: usize) -> Vec<Vec<i32>> {
-    let mut matrice_res = vec![vec![0]]; // Commence avec une matrice de 1x1
+pub fn random_arity_matrix_generator(size: usize) -> Vec<Vec<i32>> {
+    let mut matrice_res = vec![vec![0]]; // begins with a 1x1 matrix
     // Iteratively add nodes until the matrix reaches the desired size.
 
     for _ in 1..size {

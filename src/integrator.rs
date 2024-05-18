@@ -47,13 +47,7 @@ fn mono_pp(spec: &IntegralSpec, mono: &Vec<i64>) -> String {
     }
 }
 
-/**
-*   We have n element in the vector mono, we do 1 comparison per element,
-    the complexity of this function is O(n).
-    The worst case is the best case, the function has to go through the whole vector everytime.
-    idea :  not copying the value, but modify it directly, we would need to run antideriv_coef first
-    because it needs the value before the modification.
-**/
+
 fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     let mut res = Vec::new();
     for (i, &d) in mono.iter().enumerate() {
@@ -66,9 +60,7 @@ fn antideriv_mono(mono: &Vec<i64>, var_num: usize) -> Vec<i64> {
     res
 }
 
-/**
-* The complexity must be O(1) , we assume that mono[var_num] is direct access in O(1)
-*/
+
 fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRational {
     return coef.mul(BigRational::new(
         BigInt::from(1),
@@ -76,19 +68,13 @@ fn antideriv_coef(coef: &BigRational, mono: &Vec<i64>, var_num: usize) -> BigRat
     ));
 }
 
-/**
-Idée d'amelioration, mais enfait on peut pas. Dans tout les cas il faudra reparcourir tout et le modifier
-**/
+// Impsosible to use
 fn antideriv_mono_address(mono: &mut Vec<i64>, var_num: usize) {
     if var_num < mono.len() {
         mono[var_num] += 1;  // Modification de l'élément à `var_num` index
     }
 }
 
-/**
-*   O(n).
-    To clone n elements, it must take O(n).
-**/
 fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
     nmono[by_var] += mono[subst_var];
@@ -96,9 +82,6 @@ fn mono_subst_var(mono: &Vec<i64>, subst_var: usize, by_var: usize) -> Vec<i64> 
     nmono
 }
 
-/**
-* O(n) for the same reasons.
-**/
 fn mono_subst_const(mono: &Vec<i64>, subst_var: usize) -> Vec<i64> {
     let mut nmono = mono.clone();
     nmono[subst_var] = 0;
@@ -315,8 +298,8 @@ pub fn printMono(mono: &Vec<i64>, coef: &BigRational, spec: &IntegralSpec) -> ()
 }
 impl fmt::Display for Poly {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let res = poly_pp(&IntegralSpec::new(), self); // Utilisez la fonction de formatage définie précédemment
-        write!(f, "{}", res) // Écrivez le résultat dans le formatter
+        let res = poly_pp(&IntegralSpec::new(), self);
+        write!(f, "{}", res)
     }
 }
 
@@ -367,8 +350,11 @@ pub fn poly_pp(spec: &IntegralSpec, poly: &Poly) -> String {
 
 
 
-// Adapté au debugger
 
+/**
+    We integrate using an integral from a text val, we give it as a spec after using the parser's
+    function previously
+**/
 
 pub fn integrate_file(spec: &IntegralSpec){
     let mut poly = Poly::new(spec.elements.len());
@@ -391,6 +377,9 @@ pub fn integrate_file(spec: &IntegralSpec){
     println!("{:?}", time_passed);
     file.flush().expect("Unable to flush file");
 }
+
+
+
 pub fn integrate_spec(
     spec: &IntegralSpec,
     quiet_mode: bool,
@@ -433,7 +422,10 @@ pub fn integrate_spec(
         }
     }
 
-
+/**
+This function is used when we run the project with cargo run --bin create_integrale, it takes all the
+integrals from a file and integrate them using parse.
+ **/
 pub fn integrate_spec_file(
     file: String){
         let fichier_integrales = OpenOptions::new()

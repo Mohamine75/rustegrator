@@ -51,7 +51,6 @@ fn abort(header: &str, msg: &str) {
     eprintln!("<Abort>");
     process::exit(1)
 }
-
 fn main() {
     let config = Args::parse();
 
@@ -94,7 +93,10 @@ fn main() {
     else if let Some(file) = config.file {  // Access the inner `String` if it exists
         // Function to handle file processing should be called here
         integrate_spec_file(file);  // Pass the reference to the file string
-    }
+    }else{ abort("MISSING ARG","You should run a file, select \
+    \n --bin create_integrale in order to create integrals from integrales.txt
+     \n --bin --<OPTIONS> rustegrator --<OPTIONAL_FILE> --<OPTIONAL_INTEGRAL>") }
+
 
 }
 
