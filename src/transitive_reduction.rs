@@ -215,6 +215,31 @@ fn vertex_to_vertex (ordre_topologique: &Vec<(usize, usize)>,vertexj : usize,ver
     false
 }
 
+/// Applies a Floyd-Warshall based transitive reduction algorithm on a given matrix.
+///
+/// # Arguments
+/// * `matrice` - A vector of vector of i32s representing the adjacency matrix to reduce.
+///
+/// # Returns
+/// The transitive reduced matrix.
+pub fn transitive_reduction_using_floyd_warshall(matrice: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    let n = matrice.len();
+    let mut reduction = matrice.clone(); // Work on a clone to avoid altering the original during iteration
+
+    for k in 0..n {
+        for i in 0..n {
+            for j in 0..n {
+                if reduction[i][k] == 1 && reduction[k][j] == 1 {
+                    reduction[i][j] = 0; // Remove the direct edge if an indirect path exists
+                }
+            }
+        }
+    }
+
+    reduction
+}
+
+
 
 
 

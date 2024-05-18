@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use regex::Regex;
-use crate::transitive_reduction::{apply_transitive_reduction, create_ordre_topologique, transitive_reduction_topologique};
-
+use crate::transitive_reduction::{apply_transitive_reduction, create_ordre_topologique, transitive_reduction_topologique,transitive_reduction_using_floyd_warshall};
 /// Resolves adjacency matrices by applying transitive reduction and formatting output for integrals.
 ///
 /// # Arguments
@@ -118,29 +117,6 @@ fn delete_vortex(matrice: &mut Vec<Vec<i32>>, line_to_delete: usize) {
 }
 
 
-/// Applies a Floyd-Warshall based transitive reduction algorithm on a given matrix.
-///
-/// # Arguments
-/// * `matrice` - A vector of vector of i32s representing the adjacency matrix to reduce.
-///
-/// # Returns
-/// The transitive reduced matrix.
-fn transitive_reduction_using_floyd_warshall(matrice: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
-    let n = matrice.len();
-    let mut reduction = matrice.clone(); // Work on a clone to avoid altering the original during iteration
-
-    for k in 0..n {
-        for i in 0..n {
-            for j in 0..n {
-                if reduction[i][k] == 1 && reduction[k][j] == 1 {
-                    reduction[i][j] = 0; // Remove the direct edge if an indirect path exists
-                }
-            }
-        }
-    }
-
-    reduction
-}
 
 
 
